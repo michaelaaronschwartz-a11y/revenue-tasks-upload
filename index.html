@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Revenue Plan - Tasks & Resources Upload</title>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --blue: #1a73e8;
+    --blue-light: #e8f0fe;
+    --green: #1e8e3e;
+    --red: #d93025;
+    --orange: #e8710a;
+    --gray-50: #f8f9fa;
+    --gray-100: #f1f3f4;
+    --gray-200: #e8eaed;
+    --gray-300: #dadce0;
+    --gray-500: #80868b;
+    --gray-700: #5f6368;
+    --gray-900: #202124;
+    --eu: #4285f4;
+    --na: #ea4335;
+    --uk: #34a853;
+    --global: #fbbc04;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-900);
+    line-height: 1.5;
+  }
+
+  .header {
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    padding: 20px 32px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .header-left { flex: 1; min-width: 300px; }
+
+  .header-right {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .name-input {
+    padding: 8px 14px;
+    border: 2px solid var(--gray-300);
+    border-radius: 8px;
+    font-size: 14px;
+    width: 220px;
+    transition: border-color 0.2s;
+  }
+  .name-input:focus {
+    outline: none;
+    border-color: var(--blue);
+  }
+
+  .btn {
+    padding: 10px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--blue);
+    color: white;
+  }
+  .btn-primary:hover { background: #1557b0; }
+  .btn-primary:disabled {
+    background: var(--gray-300);
+    cursor: not-allowed;
+  }
+
+  .btn-secondary {
+    background: var(--gray-100);
+    color: var(--gray-700);
+    border: 1px solid var(--gray-300);
+  }
+  .btn-secondary:hover { background: var(--gray-200); }
+
+  .instructions {
+    background: var(--blue-light);
+    border: 1px solid #c6dafc;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 32px;
+    font-size: 13px;
+    color: #174ea6;
+  }
+
+  .instructions h3 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+
+  .instructions ul {
+    margin-left: 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 24px;
+  }
+
+  .instructions li { margin-bottom: 2px; }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 10px 32px;
+    background: white;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: 13px;
+    color: var(--gray-700);
+  }
+
+  .status-bar .count {
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  .status-bar .count.warning { color: var(--orange); }
+  .status-bar .count.error { color: var(--red); }
+  .status-bar .count.good { color: var(--green); }
+
+  .progress-fill {
+    height: 4px;
+    background: var(--blue);
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .progress-bar {
+    flex: 1;
+    max-width: 200px;
+    height: 4px;
+    background: var(--gray-200);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    padding: 0 32px;
+    background: white;
+    border-bottom: 2px solid var(--gray-200);
+  }
+
+  .tab {
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--gray-700);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tab:hover { color: var(--gray-900); background: var(--gray-50); }
+
+  .tab.active {
+    font-weight: 600;
+    border-bottom-color: var(--blue);
+    color: var(--blue);
+  }
+
+  .tab[data-region="eu"].active { border-bottom-color: var(--eu); color: var(--eu); }
+  .tab[data-region="na"].active { border-bottom-color: var(--na); color: var(--na); }
+  .tab[data-region="uk"].active { border-bottom-color: var(--uk); color: var(--uk); }
+  .tab[data-region="global"].active { border-bottom-color: var(--global); color: var(--global); }
+
+  .tab .badge {
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: 10px;
+    background: var(--gray-200);
+    color: var(--gray-700);
+  }
+  .tab.active .badge {
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+
+  /* Content */
+  .content { padding: 24px 32px 80px; }
+
+  .region-panel { display: none; }
+  .region-panel.active { display: block; }
+
+  .channel-section {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+
+  .channel-header {
+    padding: 16px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    background: var(--gray-50);
+    border-bottom: 1px solid var(--gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .channel-header .filled-count {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gray-500);
+  }
+
+  .stage-block {
+    border-bottom: 1px solid var(--gray-200);
+    padding: 16px 20px;
+  }
+  .stage-block:last-child { border-bottom: none; }
+
+  .stage-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .stage-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    background: var(--blue);
+  }
+
+  .owner-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .owner-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    min-width: 160px;
+  }
+
+  .owner-input {
+    flex: 1;
+    max-width: 400px;
+    padding: 6px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    font-size: 13px;
+  }
+  .owner-input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(26,115,232,0.15);
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: 120px 1fr 1fr 1fr;
+    gap: 8px;
+    align-items: start;
+  }
+
+  .team-grid-header {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-500);
+    padding: 4px 0;
+  }
+
+  .team-label {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-700);
+    padding: 7px 0;
+  }
+
+  .task-input-wrapper { position: relative; }
+
+  .task-input {
+    width: 100%;
+    padding: 6px 10px;
+    border: 1px solid var(--gray-300);
+    border-radius: 6px;
+    font-size: 13px;
+    transition: border-color 0.2s;
+  }
+  .task-input:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2px rgba(26,115,232,0.15);
+  }
+  .task-input.over-limit {
+    border-color: var(--red);
+    background: #fce8e6;
+  }
+
+  .word-count {
+    position: absolute;
+    right: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    color: var(--gray-500);
+    pointer-events: none;
+  }
+  .word-count.over { color: var(--red); font-weight: 600; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    padding: 14px 20px;
+    background: var(--gray-900);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 1000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { background: var(--red); }
+  .toast.success { background: var(--green); }
+
+  @media (max-width: 900px) {
+    .team-grid {
+      grid-template-columns: 100px 1fr 1fr 1fr;
+      gap: 6px;
+    }
+    .instructions ul { grid-template-columns: 1fr; }
+    .content { padding: 16px; }
+    .header { padding: 16px; }
+    .tabs { padding: 0 16px; overflow-x: auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="header-left">
+      <h1>2026 Revenue Plan &mdash; Tasks & Resources Upload</h1>
+      <p style="font-size:13px;color:var(--gray-500);margin-top:2px;">Revenue Org: Marketing, Partnerships, RevOps &bull; Deadline: April 1, 2026</p>
+    </div>
+    <div class="header-right">
+      <input type="text" class="name-input" id="submitterName" placeholder="Your name (required)">
+      <button class="btn btn-secondary" onclick="clearAll()">Clear All</button>
+      <button class="btn btn-primary" id="downloadBtn" onclick="downloadExcel()">Download Excel</button>
+    </div>
+  </div>
+</div>
+
+<div class="instructions">
+  <h3>Instructions</h3>
+  <ul>
+    <li>Work with your region's functional team (Product, Marketing, Partnerships, RevOps)</li>
+    <li>Populate max <strong>3</strong> required tasks and/or resources per row</li>
+    <li>Populate max <strong>10</strong> rows, min <strong>5</strong> rows</li>
+    <li>Use max of <strong>10 words</strong> for each task and/or resource</li>
+    <li>Example "task": <em>sponsor conference</em></li>
+    <li>Example "resource": <em>Product Feature</em>, <em>Product Marketing Manager</em>, or <em>co-marketing campaign</em></li>
+  </ul>
+</div>
+
+<div class="status-bar" id="statusBar">
+  <span>Rows filled: <span class="count" id="filledCount">0</span> / 10</span>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  <span>Validation: <span class="count good" id="validationStatus">Ready</span></span>
+</div>
+
+<div class="tabs" id="tabs">
+  <button class="tab active" data-region="eu" onclick="switchTab('eu')">
+    <span>EU</span>
+    <span class="badge" id="badge-eu">0</span>
+  </button>
+  <button class="tab" data-region="na" onclick="switchTab('na')">
+    <span>N. America</span>
+    <span class="badge" id="badge-na">0</span>
+  </button>
+  <button class="tab" data-region="uk" onclick="switchTab('uk')">
+    <span>UK</span>
+    <span class="badge" id="badge-uk">0</span>
+  </button>
+  <button class="tab" data-region="global" onclick="switchTab('global')">
+    <span>Global</span>
+    <span class="badge" id="badge-global">0</span>
+  </button>
+</div>
+
+<div class="content" id="content"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const REGIONS = [
+  { id: 'eu', label: 'EU', emoji: '' },
+  { id: 'na', label: 'N. America', emoji: '' },
+  { id: 'uk', label: 'UK', emoji: '' },
+  { id: 'global', label: 'Global', emoji: '' }
+];
+
+const CHANNELS = ['Distributors', 'MSPs', 'End Customers'];
+
+const STAGES = [
+  '1. Leads',
+  '2. Qualified Opportunities',
+  '3. Closed Won',
+  '4. Onboarding',
+  '5. Live & Activating'
+];
+
+const TEAMS = ['Product', 'Marketing', 'Partnerships', 'RevOps'];
+
+const MAX_WORDS = 10;
+const MAX_TASKS = 3;
+const MIN_ROWS = 5;
+const MAX_ROWS = 10;
+
+function init() {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  REGIONS.forEach(region => {
+    const panel = document.createElement('div');
+    panel.className = `region-panel ${region.id === 'eu' ? 'active' : ''}`;
+    panel.id = `panel-${region.id}`;
+
+    CHANNELS.forEach(channel => {
+      panel.innerHTML += buildChannelSection(region, channel);
+    });
+
+    content.appendChild(panel);
+  });
+
+  // Attach listeners
+  document.querySelectorAll('.task-input').forEach(input => {
+    input.addEventListener('input', handleTaskInput);
+  });
+  document.querySelectorAll('.owner-input').forEach(input => {
+    input.addEventListener('input', updateCounts);
+  });
+
+  updateCounts();
+}
+
+function buildChannelSection(region, channel) {
+  const channelKey = channel.toLowerCase().replace(/\s+/g, '_');
+  let html = `
+    <div class="channel-section">
+      <div class="channel-header">
+        <span>${channel}</span>
+        <span class="filled-count" id="filled-${region.id}-${channelKey}">0 rows filled</span>
+      </div>`;
+
+  STAGES.forEach((stage, stageIdx) => {
+    const stageNum = stageIdx + 1;
+    const prefix = `${region.id}_${channelKey}_s${stageNum}`;
+
+    html += `
+      <div class="stage-block" data-region="${region.id}" data-channel="${channelKey}" data-stage="${stageNum}">
+        <div class="stage-title">
+          <span class="stage-number">${stageNum}</span>
+          ${stage.replace(/^\d+\.\s*/, '')}
+        </div>
+        <div class="owner-row">
+          <span class="owner-label">Who owns this number?</span>
+          <input type="text" class="owner-input" id="owner_${prefix}" placeholder="e.g., Jane Smith, VP Partnerships" data-prefix="${prefix}">
+        </div>
+        <div class="team-grid">
+          <div class="team-grid-header">Team</div>
+          <div class="team-grid-header">Task/Resource 1</div>
+          <div class="team-grid-header">Task/Resource 2</div>
+          <div class="team-grid-header">Task/Resource 3</div>`;
+
+    TEAMS.forEach(team => {
+      const teamKey = team.toLowerCase();
+      for (let col = 0; col < 4; col++) {
+        if (col === 0) {
+          html += `<div class="team-label">${team}</div>`;
+        } else {
+          const inputId = `${prefix}_${teamKey}_${col}`;
+          html += `
+            <div class="task-input-wrapper">
+              <input type="text" class="task-input" id="${inputId}"
+                     placeholder="Max 10 words"
+                     data-prefix="${prefix}" data-team="${teamKey}" data-col="${col}">
+              <span class="word-count" id="wc_${inputId}"></span>
+            </div>`;
+        }
+      }
+    });
+
+    html += `</div></div>`;
+  });
+
+  html += `</div>`;
+  return html;
+}
+
+function handleTaskInput(e) {
+  const input = e.target;
+  const words = input.value.trim().split(/\s+/).filter(w => w.length > 0);
+  const count = words.length;
+  const wcEl = document.getElementById('wc_' + input.id);
+
+  if (count > 0) {
+    wcEl.textContent = `${count}/${MAX_WORDS}`;
+    if (count > MAX_WORDS) {
+      wcEl.className = 'word-count over';
+      input.classList.add('over-limit');
+    } else {
+      wcEl.className = 'word-count';
+      input.classList.remove('over-limit');
+    }
+  } else {
+    wcEl.textContent = '';
+    wcEl.className = 'word-count';
+    input.classList.remove('over-limit');
+  }
+
+  updateCounts();
+}
+
+function updateCounts() {
+  let totalFilled = 0;
+  const regionCounts = {};
+
+  REGIONS.forEach(r => { regionCounts[r.id] = 0; });
+
+  REGIONS.forEach(region => {
+    CHANNELS.forEach(channel => {
+      const channelKey = channel.toLowerCase().replace(/\s+/g, '_');
+      let channelFilled = 0;
+
+      STAGES.forEach((_, stageIdx) => {
+        const stageNum = stageIdx + 1;
+        const prefix = `${region.id}_${channelKey}_s${stageNum}`;
+        let hasContent = false;
+
+        // Check owner
+        const ownerEl = document.getElementById(`owner_${prefix}`);
+        if (ownerEl && ownerEl.value.trim()) hasContent = true;
+
+        // Check task inputs
+        TEAMS.forEach(team => {
+          const teamKey = team.toLowerCase();
+          for (let col = 1; col <= 3; col++) {
+            const el = document.getElementById(`${prefix}_${teamKey}_${col}`);
+            if (el && el.value.trim()) hasContent = true;
+          }
+        });
+
+        if (hasContent) {
+          channelFilled++;
+          totalFilled++;
+          regionCounts[region.id]++;
+        }
+      });
+
+      const filledEl = document.getElementById(`filled-${region.id}-${channelKey}`);
+      if (filledEl) filledEl.textContent = `${channelFilled} rows filled`;
+    });
+  });
+
+  // Update badges
+  REGIONS.forEach(r => {
+    document.getElementById(`badge-${r.id}`).textContent = regionCounts[r.id];
+  });
+
+  // Update status bar
+  const countEl = document.getElementById('filledCount');
+  countEl.textContent = totalFilled;
+  countEl.className = 'count' + (totalFilled > MAX_ROWS ? ' error' : totalFilled >= MIN_ROWS ? ' good' : '');
+
+  const pct = Math.min(100, (totalFilled / MAX_ROWS) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+
+  // Validation
+  const hasOverLimit = document.querySelectorAll('.task-input.over-limit').length > 0;
+  const valEl = document.getElementById('validationStatus');
+  if (hasOverLimit) {
+    valEl.textContent = 'Word limit exceeded';
+    valEl.className = 'count error';
+  } else if (totalFilled > MAX_ROWS) {
+    valEl.textContent = `Over max rows (${totalFilled}/${MAX_ROWS})`;
+    valEl.className = 'count warning';
+  } else if (totalFilled < MIN_ROWS && totalFilled > 0) {
+    valEl.textContent = `Need ${MIN_ROWS - totalFilled} more rows`;
+    valEl.className = 'count warning';
+  } else if (totalFilled === 0) {
+    valEl.textContent = 'Ready';
+    valEl.className = 'count good';
+  } else {
+    valEl.textContent = 'Good';
+    valEl.className = 'count good';
+  }
+}
+
+function switchTab(regionId) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[data-region="${regionId}"]`).classList.add('active');
+  document.querySelectorAll('.region-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`panel-${regionId}`).classList.add('active');
+}
+
+function showToast(message, type = '') {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.className = 'toast ' + type + ' show';
+  setTimeout(() => { toast.className = 'toast'; }, 3000);
+}
+
+function clearAll() {
+  if (!confirm('Clear all entries? This cannot be undone.')) return;
+  document.querySelectorAll('.task-input, .owner-input').forEach(el => { el.value = ''; });
+  document.querySelectorAll('.word-count').forEach(el => { el.textContent = ''; el.className = 'word-count'; });
+  document.querySelectorAll('.task-input').forEach(el => { el.classList.remove('over-limit'); });
+  document.getElementById('submitterName').value = '';
+  updateCounts();
+  showToast('All entries cleared', '');
+}
+
+function collectData() {
+  const rows = [];
+
+  REGIONS.forEach(region => {
+    CHANNELS.forEach(channel => {
+      const channelKey = channel.toLowerCase().replace(/\s+/g, '_');
+
+      STAGES.forEach((stage, stageIdx) => {
+        const stageNum = stageIdx + 1;
+        const prefix = `${region.id}_${channelKey}_s${stageNum}`;
+        let hasContent = false;
+
+        const ownerEl = document.getElementById(`owner_${prefix}`);
+        const ownerVal = ownerEl ? ownerEl.value.trim() : '';
+        if (ownerVal) hasContent = true;
+
+        const teamData = {};
+        TEAMS.forEach(team => {
+          const teamKey = team.toLowerCase();
+          teamData[team] = [];
+          for (let col = 1; col <= 3; col++) {
+            const el = document.getElementById(`${prefix}_${teamKey}_${col}`);
+            const val = el ? el.value.trim() : '';
+            teamData[team].push(val);
+            if (val) hasContent = true;
+          }
+        });
+
+        if (hasContent) {
+          rows.push({
+            region: region.label,
+            channel: channel,
+            stage: stage,
+            owner: ownerVal,
+            ...Object.fromEntries(
+              TEAMS.flatMap(team =>
+                teamData[team].map((val, i) => [`${team} Task ${i + 1}`, val])
+              )
+            )
+          });
+        }
+      });
+    });
+  });
+
+  return rows;
+}
+
+function downloadExcel() {
+  const name = document.getElementById('submitterName').value.trim();
+  if (!name) {
+    showToast('Please enter your name before downloading.', 'error');
+    document.getElementById('submitterName').focus();
+    return;
+  }
+
+  const data = collectData();
+  if (data.length === 0) {
+    showToast('No entries to export. Fill in at least 5 rows.', 'error');
+    return;
+  }
+
+  if (data.length < MIN_ROWS) {
+    showToast(`Only ${data.length} rows filled. Minimum is ${MIN_ROWS}.`, 'error');
+    return;
+  }
+
+  const hasOverLimit = document.querySelectorAll('.task-input.over-limit').length > 0;
+  if (hasOverLimit) {
+    showToast('Fix word limit violations before downloading.', 'error');
+    return;
+  }
+
+  // Build workbook
+  const wb = XLSX.utils.book_new();
+
+  // Header rows
+  const headerInfo = [
+    ['2026 Revenue Plan - Tasks & Resources Upload'],
+    [`Submitted by: ${name}`],
+    [`Date: ${new Date().toLocaleDateString()}`],
+    []
+  ];
+
+  // Column headers
+  const colHeaders = [
+    'Region', 'Channel', 'Funnel Stage', 'Who Owns This Number?',
+    'Product Task 1', 'Product Task 2', 'Product Task 3',
+    'Marketing Task 1', 'Marketing Task 2', 'Marketing Task 3',
+    'Partnerships Task 1', 'Partnerships Task 2', 'Partnerships Task 3',
+    'RevOps Task 1', 'RevOps Task 2', 'RevOps Task 3'
+  ];
+
+  const sheetData = [...headerInfo, colHeaders];
+
+  data.forEach(row => {
+    sheetData.push([
+      row.region,
+      row.channel,
+      row.stage,
+      row.owner,
+      row['Product Task 1'] || '',
+      row['Product Task 2'] || '',
+      row['Product Task 3'] || '',
+      row['Marketing Task 1'] || '',
+      row['Marketing Task 2'] || '',
+      row['Marketing Task 3'] || '',
+      row['Partnerships Task 1'] || '',
+      row['Partnerships Task 2'] || '',
+      row['Partnerships Task 3'] || '',
+      row['RevOps Task 1'] || '',
+      row['RevOps Task 2'] || '',
+      row['RevOps Task 3'] || ''
+    ]);
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet(sheetData);
+
+  // Column widths
+  ws['!cols'] = [
+    { wch: 14 }, { wch: 16 }, { wch: 26 }, { wch: 28 },
+    { wch: 24 }, { wch: 24 }, { wch: 24 },
+    { wch: 24 }, { wch: 24 }, { wch: 24 },
+    { wch: 24 }, { wch: 24 }, { wch: 24 },
+    { wch: 24 }, { wch: 24 }, { wch: 24 }
+  ];
+
+  XLSX.utils.book_append_sheet(wb, ws, 'Tasks & Resources');
+
+  const fileName = `Revenue_Tasks_${name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+  XLSX.writeFile(wb, fileName);
+  showToast(`Downloaded: ${fileName}`, 'success');
+}
+
+// Initialize on load
+init();
+</script>
+
+</body>
+</html>
